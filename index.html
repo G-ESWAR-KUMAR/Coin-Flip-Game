@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betting Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        #timer {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+        }
+
+        .bet-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .bet-buttons button {
+            width: 48%;
+            padding: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #00aaff;
+            color: white;
+        }
+
+        .bet-buttons button:hover {
+            background-color: #0077cc;
+        }
+
+        .bet-buttons input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+        }
+
+        .history-tabs {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .history-tabs button {
+            width: 48%;
+            padding: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #ddd;
+            color: #333;
+        }
+
+        .history-tabs button.active {
+            background-color: #00aaff;
+            color: white;
+        }
+
+        .history-container {
+            margin-top: 20px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th, .history-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .history-table th {
+            background-color: #00aaff;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .bet-buttons button {
+                font-size: 1em;
+            }
+
+            .bet-buttons input {
+                font-size: 0.9em;
+            }
+        }
+
+        #error-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Betting Game</h1>
+        <div class="balance">Balance: $<span id="balance">1000</span></div>
+        <p>Serial Number: <span id="serial-number">2024090300</span></p>
+        <div id="timer">60</div>
+
+        <div class="bet-buttons">
+            <button onclick="placeBet('Heads')">Heads</button>
+            <button onclick="placeBet('Tails')">Tails</button>
+        </div>
+        <input type="number" id="bet-amount" placeholder="Enter bet amount" required>
+        <div id="error-message">Insufficient funds!</div>
+
+        <div class="history-tabs">
+            <button id="game-history-tab" class="active" onclick="showHistory('game')">Game History</button>
+            <button id="bet-history-tab" onclick="showHistory('bet')">Bet History</button>
+        </div>
+
+        <div id="game-history" class="history-container">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody id="game-history-body"></tbody>
+            </table>
+        </div>
+
+        <div id="bet-history" class="history-container" style="display: none;">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Bet Option</th>
+                        <th>Result</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="bet-history-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let balance = 1000;
+        let serialNumber = "2024090300";  // Initial serial number format yyyymmdd00
+        let timeLeft = 60;
+        let lastOutcome = '';
+        let betPlaced = false;
+        let currentBet = null;
+
+        function countdown() {
+            const timerElement = document.getElementById('timer');
+            if (timeLeft === 0) {
+                // Generate outcome and update history
+                generateOutcome();
+                resetTimer();
+                incrementSerialNumber();
+            } else {
+                timerElement.innerHTML = timeLeft;
+                timeLeft--;
+            }
+            setTimeout(countdown, 1000);
+        }
+
+        function resetTimer() {
+            timeLeft = 60;
+            document.getElementById('timer').innerHTML = timeLeft;
+        }
+
+        function incrementSerialNumber() {
+            let datePart = serialNumber.slice(0, 8);
+            let counterPart = parseInt(serialNumber.slice(8));
+            counterPart = (counterPart + 1) % 100;
+            serialNumber = datePart + (counterPart < 10 ? '0' + counterPart : counterPart);
+            document.getElementById('serial-number').innerText = serialNumber;
+        }
+
+        function generateOutcome() {
+            const outcome = Math.random() < 0.5 ? 'Heads' : 'Tails';
+
+            // Update game history
+            const gameHistoryElement = document.getElementById('game-history-body');
+            const gameHistoryRow = document.createElement('tr');
+            gameHistoryRow.innerHTML = `<td>${serialNumber}</td><td>${outcome}</td>`;
+            gameHistoryElement.appendChild(gameHistoryRow);
+
+            if (betPlaced && currentBet) {
+                const betChoice = currentBet.choice;
+                const result = outcome === betChoice ? 'Win' : 'Lose';
+
+                // Update balance
+                let amount = 0;
+                if (result === 'Win') {
+                    amount = currentBet.amount;
+                    balance += amount*2;
+                } else {
+                    amount = -currentBet.amount;
+                    balance += amount;
+                }
+
+                // Update bet history
+                const betHistoryElement = document.getElementById('bet-history-body');
+                const betHistoryRow = document.getElementById(`bet-row-${currentBet.serialNumber}`);
+                betHistoryRow.innerHTML += `<td>${result}</td><td>${amount}</td>`;
+
+                // Update UI
+                document.getElementById('balance').innerText = balance;
+                document.getElementById('bet-amount').value = '';
+                betPlaced = false;
+                currentBet = null;
+            }
+        }
+
+        function placeBet(choice) {
+            const betAmount = parseInt(document.getElementById('bet-amount').value);
+            if (betAmount > balance) {
+                document.getElementById('error-message').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('error-message').style.display = 'none';
+            balance -= betAmount;
+            document.getElementById('balance').innerText = balance;
+
+            lastOutcome = choice;
+            betPlaced = true;
+
+            // Add bet to bet history (partially update)
+            const betHistoryElement = document.getElementById('bet-history-body');
+            const betHistoryRow = document.createElement('tr');
+            betHistoryRow.id = `bet-row-${serialNumber}`;
+            betHistoryRow.innerHTML = `<td>${serialNumber}</td><td>${choice}</td>`;
+            betHistoryElement.appendChild(betHistoryRow);
+
+            currentBet = {
+                serialNumber: serialNumber,
+                choice: choice,
+                amount: betAmount
+            };
+        }
+
+        function showHistory(type) {
+            document.getElementById('game-history').style.display = type === 'game' ? 'block' : 'none';
+            document.getElementById('bet-history').style.display = type === 'bet' ? 'block' : 'none';
+
+            document.getElementById('game-history-tab').classList.toggle('active', type === 'game');
+            document.getElementById('bet-history-tab').classList.toggle('active', type === 'bet');
+        }
+
+        // Start the countdown timer
+        countdown();
+    </script>
+</body>
+</html>
