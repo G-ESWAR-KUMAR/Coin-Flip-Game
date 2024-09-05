@@ -286,7 +286,7 @@
             balance += amount * 2; // Double the bet amount if the user wins
         } else {
             amount = currentBet.amount;
-            balance -= amount; // Subtract the bet amount if the user loses
+            balance = amount; // Subtract the bet amount if the user loses
         }
 
         // Update bet history
