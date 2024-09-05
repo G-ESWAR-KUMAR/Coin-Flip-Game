@@ -230,8 +230,8 @@
                     amount = currentBet.amount;
                     balance += amount*2;
                 } else {
-                    amount = -currentBet.amount;
-                    balance += amount;
+                    //amount = -currentBet.amount;
+                    //balance += amount;
                 }
 
                 // Update bet history
@@ -255,8 +255,8 @@
             }
 
             document.getElementById('error-message').style.display = 'none';
-            //balance -= betAmount;
-            //document.getElementById('balance').innerText = balance;
+            balance -= betAmount;
+            document.getElementById('balance').innerText = balance;
 
             lastOutcome = choice;
             betPlaced = true;
