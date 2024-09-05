@@ -211,41 +211,97 @@
             document.getElementById('serial-number').innerText = serialNumber;
         }
 
+        // function generateOutcome() {
+        //     const outcome = Math.random() < 0.5 ? 'Heads' : 'Tails';
+
+        //     // Update game history
+        //     const gameHistoryElement = document.getElementById('game-history-body');
+        //     const gameHistoryRow = document.createElement('tr');
+        //     gameHistoryRow.innerHTML = `<td>${serialNumber}</td><td>${outcome}</td>`;
+        //     gameHistoryElement.appendChild(gameHistoryRow);
+
+        //     if (betPlaced && currentBet) {
+        //         const betChoice = currentBet.choice;
+        //         const result = outcome === betChoice ? 'Win' : 'Lose';
+
+        //         // Update balance
+        //         let amount = 0;
+        //         if (result === 'Win') {
+        //             amount = currentBet.amount;
+        //             balance += amount*2;
+        //         } else {
+        //             amount = currentBet.amount;
+        //             balance = amount;
+        //         }
+
+        //         // Update bet history
+        //         const betHistoryElement = document.getElementById('bet-history-body');
+        //         const betHistoryRow = document.getElementById(`bet-row-${currentBet.serialNumber}`);
+        //         betHistoryRow.innerHTML += `<td>${result}</td><td>${amount}</td>`;
+
+        //         // Update UI
+        //         document.getElementById('balance').innerText = balance;
+        //         document.getElementById('bet-amount').value = '';
+        //         betPlaced = false;
+        //         currentBet = null;
+        //     }
+        // }
+
         function generateOutcome() {
-            const outcome = Math.random() < 0.5 ? 'Heads' : 'Tails';
+    let outcome = ''; // Result of the game (Heads or Tails)
+    let totalHeadsBet = 0;
+    let totalTailsBet = 0;
 
-            // Update game history
-            const gameHistoryElement = document.getElementById('game-history-body');
-            const gameHistoryRow = document.createElement('tr');
-            gameHistoryRow.innerHTML = `<td>${serialNumber}</td><td>${outcome}</td>`;
-            gameHistoryElement.appendChild(gameHistoryRow);
+    // Calculate total bets on Heads and Tails
+    if (currentBet.choice === 'Heads') {
+        totalHeadsBet += currentBet.amount;
+    } else if (currentBet.choice === 'Tails') {
+        totalTailsBet += currentBet.amount;
+    }
 
-            if (betPlaced && currentBet) {
-                const betChoice = currentBet.choice;
-                const result = outcome === betChoice ? 'Win' : 'Lose';
+    // Determine outcome based on lower bet amount
+    if (totalHeadsBet < totalTailsBet) {
+        outcome = 'Heads';
+    } else if (totalTailsBet < totalHeadsBet) {
+        outcome = 'Tails';
+    } else {
+        // In case the bet amounts are equal, you can decide randomly or set a default
+        outcome = Math.random() < 0.5 ? 'Heads' : 'Tails';
+    }
 
-                // Update balance
-                let amount = 0;
-                if (result === 'Win') {
-                    amount = currentBet.amount;
-                    balance += amount*2;
-                } else {
-                    amount = currentBet.amount;
-                    balance = amount;
-                }
+    // Update game history
+    const gameHistoryElement = document.getElementById('game-history-body');
+    const gameHistoryRow = document.createElement('tr');
+    gameHistoryRow.innerHTML = `<td>${serialNumber}</td><td>${outcome}</td>`;
+    gameHistoryElement.appendChild(gameHistoryRow);
 
-                // Update bet history
-                const betHistoryElement = document.getElementById('bet-history-body');
-                const betHistoryRow = document.getElementById(`bet-row-${currentBet.serialNumber}`);
-                betHistoryRow.innerHTML += `<td>${result}</td><td>${amount}</td>`;
+    if (betPlaced && currentBet) {
+        const betChoice = currentBet.choice;
+        const result = outcome === betChoice ? 'Win' : 'Lose';
 
-                // Update UI
-                document.getElementById('balance').innerText = balance;
-                document.getElementById('bet-amount').value = '';
-                betPlaced = false;
-                currentBet = null;
-            }
+        // Update balance based on win or loss
+        let amount = 0;
+        if (result === 'Win') {
+            amount = currentBet.amount;
+            balance += amount * 2; // Double the bet amount if the user wins
+        } else {
+            amount = currentBet.amount;
+            balance -= amount; // Subtract the bet amount if the user loses
         }
+
+        // Update bet history
+        const betHistoryElement = document.getElementById('bet-history-body');
+        const betHistoryRow = document.getElementById(`bet-row-${currentBet.serialNumber}`);
+        betHistoryRow.innerHTML += `<td>${result}</td><td>${amount}</td>`;
+
+        // Update UI for balance and reset bet input
+        document.getElementById('balance').innerText = balance;
+        document.getElementById('bet-amount').value = '';
+        betPlaced = false;
+        currentBet = null;
+    }
+}
+
 
         function placeBet(choice) {
             const betAmount = parseInt(document.getElementById('bet-amount').value);
